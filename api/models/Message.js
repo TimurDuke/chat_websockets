@@ -22,7 +22,7 @@ const MessageSchema = new Schema({
     }
 });
 
-MessageSchema.plugin(idValidator, {message : 'Bad ID value for {PATH}'});
-const Message = mongoose.model('Message',MessageSchema);
+MessageSchema.plugin(idValidator, {message: 'Bad ID value for {PATH}'});
+const Message = mongoose.model('Message', MessageSchema);
 
 module.exports = Message;
