@@ -6,6 +6,7 @@ const users = require('./app/users');
 const config = require('./config');
 const auth = require("./middleware/auth");
 const Message = require("./models/Message");
+const User = require("./models/User");
 
 const app = express();
 const port = 8000;
@@ -31,6 +32,19 @@ const run = async () => {
 };
 
 const activeConnections = {};
+
+const sendAll = (msg) => {
+    Object.keys(activeConnections).forEach(connId => {
+        const conn = activeConnections[connId];
+        conn.send(JSON.stringify(msg));
+    });
+}
+
+const sendUserList = async () => {
+    const activeUsers = await User.find({_id: {$in: Object.keys(activeConnections)}}, '_id username');
+    sendAll({type: 'USERS', activeUsers})
+}
+
 app.ws('/chat', auth, async (ws, req) => {
     const user = req.user;
 
@@ -38,7 +52,11 @@ app.ws('/chat', auth, async (ws, req) => {
     console.log('Client connected id=', id);
     activeConnections[id] = ws;
 
-    //выслать 30 сообщений
+    await sendUserList();
+
+    const prevMsg = await Message.find({recipient: {$exists: false}})
+        .limit(30)
+        .sort({date: 1})
 
     ws.on('message', async msg => {
         try {
@@ -53,11 +71,9 @@ app.ws('/chat', auth, async (ws, req) => {
                     };
                     const newMsg = new Message(data);
                     await newMsg.save();
-                    decodedMessage.message = newMsg
-                    Object.keys(activeConnections).forEach(connId => {
-                        const conn = activeConnections[connId];
-                        conn.send(JSON.stringify(decodedMessage));
-                    });
+
+                    const message = await Message.populate(data,{path:"user", select:"username"});
+                    sendAll({type: 'BROADCAST', message});
                     break;
 
                 case 'PRIVATE':
@@ -68,10 +84,7 @@ app.ws('/chat', auth, async (ws, req) => {
 
                 case 'DELETE':
                     await Message.deleteOne({_id: decodedMessage.id});
-                    Object.keys(activeConnections).forEach(connId => {
-                        const conn = activeConnections[connId];
-                        conn.send(msg);
-                    });
+                    sendAll({type: 'DELETE', id: decodedMessage.id});
                     break;
 
                 default:
@@ -85,6 +98,7 @@ app.ws('/chat', auth, async (ws, req) => {
 
     ws.on('close', () => {
         console.log('Client disconnected! id=', id);
+        sendUserList();
         delete activeConnections[id];
     });
 
