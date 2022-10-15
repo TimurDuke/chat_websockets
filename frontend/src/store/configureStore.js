@@ -2,10 +2,13 @@ import {applyMiddleware, combineReducers, compose, createStore} from "redux";
 import thunk from "redux-thunk";
 import {loadFromLocalStorage, saveToLocalStorage} from "./localStorage";
 import axiosApi from "../axiosApi";
+import usersReducer from "./reducers/usersReducer";
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
-const rootReducer = combineReducers({});
+const rootReducer = combineReducers({
+    users: usersReducer,
+});
 
 const persistedState = loadFromLocalStorage();
 

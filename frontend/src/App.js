@@ -1,11 +1,20 @@
-import React from 'react';
+import {Route, Switch} from "react-router-dom";
+import Layout from "./components/UI/Layout/Layout";
+import Register from "./containers/Register/Register";
+import Login from "./containers/Login/Login";
+import Messages from "./containers/Messages/Messages";
 
 const App = () => {
+
     return (
-        <div>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. A, tempora?
-        </div>
+        <Layout>
+            <Switch>
+                <Route path="/" exact component={Messages}/>
+                <Route path="/register" component={Register}/>
+                <Route path="/login" component={Login}/>
+            </Switch>
+        </Layout>
     );
-};
+}
 
 export default App;
