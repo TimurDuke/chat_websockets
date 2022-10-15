@@ -12,6 +12,7 @@ const App = () => {
                 <Route path="/" exact component={Messages}/>
                 <Route path="/register" component={Register}/>
                 <Route path="/login" component={Login}/>
+                <Route render={() => <h1 style={{textAlign: 'center'}}>Not found!</h1>}/>
             </Switch>
         </Layout>
     );

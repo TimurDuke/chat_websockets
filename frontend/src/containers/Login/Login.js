@@ -4,7 +4,7 @@ import {makeStyles} from "tss-react/mui";
 import {Alert, Avatar, Container, Grid, Link, Typography} from "@mui/material";
 import {LockOpenOutlined} from "@mui/icons-material";
 import {useDispatch, useSelector} from "react-redux";
-import {clearRegisterErrors, loginUser} from "../../store/actions/usersActions";
+import {clearLoginErrors, loginUser} from "../../store/actions/usersActions";
 import FormElement from "../../components/UI/Form/FormElement/FormElement";
 import ButtonWithProgress from "../../components/UI/ButtonWithProgress/ButtonWithProgress";
 
@@ -45,7 +45,7 @@ const Login = () => {
 
     useEffect(() => {
         return () => {
-            dispatch(clearRegisterErrors());
+            dispatch(clearLoginErrors());
         }
     }, [dispatch]);
 
