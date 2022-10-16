@@ -15,12 +15,58 @@ const sendUserList = async () => {
     sendAll({type: 'USERS', activeUsers});
 };
 
+const broadcastHandler = async (ws, user, decodedMessage) => {
+    if (decodedMessage.message) {
+        const data = {
+            user: user._id,
+            message: decodedMessage.message,
+            date: new Date().toISOString()
+        };
+        const newMsg = new Message(data);
+        await newMsg.save();
+        const message = await Message.populate(newMsg, {path: "user", select: "username"});
+        sendAll({type: 'BROADCAST', message});
+    } else {
+        ws.send(JSON.stringify({type: 'ERROR', error: 'Message cannot be empty'}));
+    }
+};
+
+const privateHandler = async (ws, user, decodedMessage) => {
+    const recipient = decodedMessage.recipient;
+    const conn = activeConnections[recipient];
+
+    if (conn) {
+        const privateData = {
+            user: user._id,
+            recipient: decodedMessage.recipient,
+            message: decodedMessage.message,
+            date: new Date().toISOString()
+        };
+        const privateMsg = new Message(privateData);
+        await privateMsg.save();
+
+        const message = await Message.populate(privateMsg, {path: "user", select: "username"});
+        conn.send(JSON.stringify({type: 'PRIVATE', message}));
+    } else {
+        ws.send(JSON.stringify({type: 'ERROR', error: 'Recipient not found'}));
+    }
+};
+
+const deleteHandler = async (ws, user, decodedMessage) => {
+    if (user.role === 'moderator') {
+        await Message.deleteOne({_id: decodedMessage.id});
+        sendAll({type: 'DELETE', id: decodedMessage.id});
+    } else {
+        ws.send(JSON.stringify({type: 'ERROR', error: 'Forbidden'}));
+    }
+};
+
 const chat = async (ws, req) => {
     const user = req.user;
 
     const id = user._id.toString();
-    console.log('Client connected id=', id);
     activeConnections[id] = ws;
+    console.log('Client connected id=', id);
 
     await sendUserList();
 
@@ -37,27 +83,15 @@ const chat = async (ws, req) => {
 
             switch (decodedMessage.type) {
                 case 'BROADCAST':
-                    const data = {
-                        user: user._id,
-                        message: decodedMessage.message,
-                        date: new Date().toISOString()
-                    };
-                    const newMsg = new Message(data);
-                    await newMsg.save();
-
-                    const message = await Message.populate(data, {path: "user", select: "username"});
-                    sendAll({type: 'BROADCAST', message});
+                    await broadcastHandler(ws, user, decodedMessage);
                     break;
 
                 case 'PRIVATE':
-                    const recipient = decodedMessage.message.recipient;
-                    const conn = activeConnections[recipient];
-                    conn.send(msg);
+                    await privateHandler(ws, user, decodedMessage);
                     break;
 
                 case 'DELETE':
-                    await Message.deleteOne({_id: decodedMessage.id});
-                    sendAll({type: 'DELETE', id: decodedMessage.id});
+                    await deleteHandler(ws, user, decodedMessage);
                     break;
 
                 default:
