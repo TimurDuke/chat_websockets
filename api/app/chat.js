@@ -17,7 +17,6 @@ const sendUserList = async () => {
 
 const prevHandler = async () => {
     await Message.find({recipient: {$exists: false}}).exec(async (err, messages) => {
-        console.log(messages.length);
         const prevMsg = await Message.find({recipient: {$exists: false}})
             .skip(messages.length > 30 ? messages.length - 30 : 0)
             .sort({date: 1})
