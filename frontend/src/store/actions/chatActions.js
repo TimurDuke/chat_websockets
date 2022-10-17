@@ -8,9 +8,16 @@ export const sendMessage = (ws, message) => {
     ws.current.send(JSON.stringify(message));
 };
 
-export const POST_MESSAGE = 'POST_MESSAGE';
-export const postMessage = message => ({type: POST_MESSAGE, payload: message});
+export const ACCEPT_MESSAGE = 'ACCEPT_MESSAGE';
+export const acceptMessage = message => ({type: ACCEPT_MESSAGE, payload: message});
 
-// export const deleteMessage = (ws, message) => {
-//     ws.current.send(JSON.stringify(message));
-// };
+export const deleteMessage = (ws, message) => {
+    ws.current.send(JSON.stringify(message));
+};
+
+export const sendPrivateMessage = (ws, message) => {
+    ws.current.send(JSON.stringify(message));
+};
+
+export const ACCEPT_PRIVATE_MESSAGE = 'ACCEPT_PRIVATE_MESSAGE';
+export const acceptPrivateMessage = message => ({type: ACCEPT_PRIVATE_MESSAGE, payload: message});

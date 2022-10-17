@@ -1,10 +1,8 @@
-import {GET_ONLINE_USERS, GET_PREV_MESSAGES, POST_MESSAGE} from "../actions/chatActions";
+import {ACCEPT_MESSAGE, ACCEPT_PRIVATE_MESSAGE, GET_ONLINE_USERS, GET_PREV_MESSAGES} from "../actions/chatActions";
 
 const initialState = {
     users: [],
     messages: [],
-    loading: false,
-    error: null,
 };
 
 const chatReducer = (state = initialState, action) => {
@@ -13,7 +11,9 @@ const chatReducer = (state = initialState, action) => {
             return {...state, users: action.payload};
         case GET_PREV_MESSAGES:
             return {...state, messages: action.payload};
-        case POST_MESSAGE:
+        case ACCEPT_MESSAGE:
+            return {...state, messages: [...state.messages, action.payload]};
+        case ACCEPT_PRIVATE_MESSAGE:
             return {...state, messages: [...state.messages, action.payload]};
 
         default:

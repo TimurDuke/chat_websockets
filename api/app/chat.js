@@ -15,6 +15,18 @@ const sendUserList = async () => {
     sendAll({type: 'USERS', activeUsers});
 };
 
+const prevHandler = async () => {
+    await Message.find({recipient: {$exists: false}}).exec(async (err, messages) => {
+        console.log(messages.length);
+        const prevMsg = await Message.find({recipient: {$exists: false}})
+            .skip(messages.length > 30 ? messages.length - 30 : 0)
+            .sort({date: 1})
+            .populate('user', 'username role');
+
+        sendAll({type: 'PREV_MESSAGES', messages: prevMsg});
+    });
+};
+
 const broadcastHandler = async (ws, user, decodedMessage) => {
     if (decodedMessage.message) {
         const data = {
@@ -55,7 +67,7 @@ const privateHandler = async (ws, user, decodedMessage) => {
 const deleteHandler = async (ws, user, decodedMessage) => {
     if (user.role === 'moderator') {
         await Message.deleteOne({_id: decodedMessage.id});
-        sendAll({type: 'DELETE', id: decodedMessage.id});
+        await prevHandler();
     } else {
         ws.send(JSON.stringify({type: 'ERROR', error: 'Forbidden'}));
     }
@@ -70,12 +82,7 @@ const chat = async (ws, req) => {
 
     await sendUserList();
 
-    const prevMsg = await Message.find({recipient: {$exists: false}})
-        .limit(30)
-        .sort({date: 1})
-        .populate('user', 'username');
-
-    ws.send(JSON.stringify({type: 'PREV_MESSAGES', messages: prevMsg}));
+    await prevHandler();
 
     ws.on('message', async msg => {
         try {

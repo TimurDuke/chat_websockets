@@ -2,9 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Button, Grid, InputAdornment, TextField} from "@mui/material";
 
-const FormElement = ({name, value, onChange, label, error, type, required, styles, icon}) => {
+const FormElement = ({name, value, onChange, label, error, type, required, styles, icon, select}) => {
     return (
-        <Grid item xs={12}>
+        <Grid item xs={12} sx={{width: '100%'}}>
             <TextField
                 className={styles}
                 type={type}
@@ -20,11 +20,20 @@ const FormElement = ({name, value, onChange, label, error, type, required, style
                     {
                         className: styles,
                         endAdornment: (
-                            <InputAdornment position="end">
+                            <InputAdornment
+                                position="end"
+                                style={{
+                                    display: 'flex',
+                                    width: '100%',
+                                    alignItems: 'center',
+                                    justifyContent: 'flex-end'
+                                }}
+                            >
                                 <Button
                                     type='submit'
                                     endIcon={icon}
                                 />
+                                {select}
                             </InputAdornment>
                         )
                     } : null
@@ -44,6 +53,7 @@ FormElement.propTypes = {
     required: PropTypes.bool,
     styles: PropTypes.string,
     icon: PropTypes.object,
+    select: PropTypes.object,
 };
 
 export default FormElement;
