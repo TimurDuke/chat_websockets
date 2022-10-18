@@ -35,7 +35,7 @@ const broadcastHandler = async (ws, user, decodedMessage) => {
         };
         const newMsg = new Message(data);
         await newMsg.save();
-        const message = await Message.populate(newMsg, {path: "user", select: "username"});
+        const message = await Message.populate(newMsg, {path: "user", select: "username role"});
         sendAll({type: 'BROADCAST', message});
     } else {
         ws.send(JSON.stringify({type: 'ERROR', error: 'Message cannot be empty'}));
