@@ -11,23 +11,33 @@ const sendAll = (msg) => {
 };
 
 const sendUserList = async () => {
-    const activeUsers = await User.find({_id: {$in: Object.keys(activeConnections)}}, '_id username');
-    sendAll({type: 'USERS', activeUsers});
+    try {
+        const activeUsers = await User.find({_id: {$in: Object.keys(activeConnections)}}, '_id username');
+        sendAll({type: 'USERS', activeUsers});
+    } catch (e) {
+        console.log(e);
+        ws.send(JSON.stringify({type: 'ERROR', error: 'Internal server error'}));
+    }
 };
 
 const prevHandler = async () => {
-    await Message.find({recipient: {$exists: false}}).exec(async (err, messages) => {
-        const prevMsg = await Message.find({recipient: {$exists: false}})
-            .skip(messages.length > 30 ? messages.length - 30 : 0)
-            .sort({date: 1})
-            .populate('user', 'username role');
+    try {
+        await Message.find({recipient: {$exists: false}}).exec(async (err, messages) => {
+            const prevMsg = await Message.find({recipient: {$exists: false}})
+                .skip(messages.length > 30 ? messages.length - 30 : 0)
+                .sort({date: 1})
+                .populate('user', 'username role');
 
-        sendAll({type: 'PREV_MESSAGES', messages: prevMsg});
-    });
+            sendAll({type: 'PREV_MESSAGES', messages: prevMsg});
+        });
+    } catch (e) {
+        console.log(e);
+        ws.send(JSON.stringify({type: 'ERROR', error: 'Internal server error'}));
+    }
 };
 
 const broadcastHandler = async (ws, user, decodedMessage) => {
-    if (decodedMessage.message) {
+    try {
         const data = {
             user: user._id,
             message: decodedMessage.message,
@@ -37,38 +47,53 @@ const broadcastHandler = async (ws, user, decodedMessage) => {
         await newMsg.save();
         const message = await Message.populate(newMsg, {path: "user", select: "username role"});
         sendAll({type: 'BROADCAST', message});
-    } else {
-        ws.send(JSON.stringify({type: 'ERROR', error: 'Message cannot be empty'}));
+    } catch (e) {
+        console.log(e);
+        ws.send(JSON.stringify({type: 'ERROR', error: 'Internal server error'}));
     }
 };
 
 const privateHandler = async (ws, user, decodedMessage) => {
-    const recipient = decodedMessage.recipient;
-    const conn = activeConnections[recipient];
+    try {
+        const recipient = decodedMessage.recipient;
+        const conn = activeConnections[recipient];
+        if (conn) {
+            const privateData = {
+                user: user._id,
+                recipient: decodedMessage.recipient,
+                message: decodedMessage.message,
+                date: new Date().toISOString()
+            };
+            const privateMsg = new Message(privateData);
+            await privateMsg.save();
 
-    if (conn) {
-        const privateData = {
-            user: user._id,
-            recipient: decodedMessage.recipient,
-            message: decodedMessage.message,
-            date: new Date().toISOString()
-        };
-        const privateMsg = new Message(privateData);
-        await privateMsg.save();
+            const message = await Message.populate(privateMsg, [{path: "user", select: "username"}, {
+                path: "recipient",
+                select: "username"
+            }]);
 
-        const message = await Message.populate(privateMsg, {path: "user", select: "username"});
-        conn.send(JSON.stringify({type: 'PRIVATE', message}));
-    } else {
-        ws.send(JSON.stringify({type: 'ERROR', error: 'Recipient not found'}));
+            conn.send(JSON.stringify({type: 'PRIVATE', message}));
+            ws.send(JSON.stringify({type: 'PRIVATE', message}));
+        } else {
+            ws.send(JSON.stringify({type: 'ERROR', error: 'Recipient not found'}));
+        }
+    } catch (e) {
+        console.log(e);
+        ws.send(JSON.stringify({type: 'ERROR', error: 'Internal server error'}));
     }
 };
 
 const deleteHandler = async (ws, user, decodedMessage) => {
-    if (user.role === 'moderator') {
-        await Message.deleteOne({_id: decodedMessage.id});
-        await prevHandler();
-    } else {
-        ws.send(JSON.stringify({type: 'ERROR', error: 'Forbidden'}));
+    try {
+        if (user.role === 'moderator') {
+            await Message.deleteOne({_id: decodedMessage.id});
+            await prevHandler();
+        } else {
+            ws.send(JSON.stringify({type: 'ERROR', error: 'Forbidden'}));
+        }
+    } catch (e) {
+        console.log(e);
+        ws.send(JSON.stringify({type: 'ERROR', error: 'Internal server error'}));
     }
 };
 
@@ -76,6 +101,10 @@ const chat = async (ws, req) => {
     const user = req.user;
 
     const id = user._id.toString();
+    if (activeConnections[id]) {
+        ws.send(JSON.stringify({type: 'ERROR', error: 'Connection already exist'}));
+        return;
+    }
     activeConnections[id] = ws;
     console.log('Client connected id=', id);
 
@@ -86,6 +115,11 @@ const chat = async (ws, req) => {
     ws.on('message', async msg => {
         try {
             const decodedMessage = JSON.parse(msg);
+
+            if (!decodedMessage.message || decodedMessage.message.trim().length === 0) {
+                ws.send(JSON.stringify({type: 'ERROR', error: 'Message cannot be empty'}));
+                return;
+            }
 
             switch (decodedMessage.type) {
                 case 'BROADCAST':
@@ -106,6 +140,7 @@ const chat = async (ws, req) => {
 
         } catch (e) {
             console.log(e);
+            ws.send(JSON.stringify({type: 'ERROR', error: 'Bad request'}));
         }
     });
 
