@@ -1,23 +1,22 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Redirect} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {Box, Paper, Typography} from "@mui/material";
+import {Box} from "@mui/material";
 import {makeStyles} from "tss-react/mui";
-import SendIcon from '@mui/icons-material/Send';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import {
-    acceptMessage, acceptPrivateMessage,
+    acceptMessage,
+    acceptPrivateMessage,
     deleteMessage,
     getOnlineUsers,
     getPrevMessages,
-    sendMessage, sendPrivateMessage
+    sendMessage,
+    sendPrivateMessage
 } from "../../store/actions/chatActions";
-import FormElement from "../../components/UI/Form/FormElement/FormElement";
-import User from "../../components/User/User";
-import Message from "../../components/Message/Message";
 import usersBg from '../../assests/images/users-bg.jpg';
 import messagesBg from '../../assests/images/messages-bg.jpg';
-import FormSelect from "../../components/UI/Form/FormSelect/FormSelect";
+import UsersComponent from "../../components/UsersComponent/UsersComponent";
+import MessagesComponent from "../../components/MessagesComponent/MessagesComponent";
+import MessageForm from "../../components/UI/Form/MessageForm/MessageForm";
 
 const useStyles = makeStyles()(theme => ({
     box: {
@@ -248,7 +247,6 @@ const Messages = () => {
         }
 
         if (!!state.recipient && !!state.message) {
-            console.log('123')
             sendPrivateMessage(ws,
                 {
                     type: "PRIVATE",
@@ -282,93 +280,38 @@ const Messages = () => {
 
     return (
         <Box className={classes.box}>
-            <Paper elevation={3} className={classes.members}>
-                <Typography
-                    variant='h6'
-                    className={classes.titles}
-                >
-                    Online users
-                </Typography>
-                {!!users.length ? users.map(user => (
-                    <User
-                        key={user['_id']}
-                        styles={classes.user}
-                        username={user.username}
-                    />
-                )) : null}
-            </Paper>
-            <Paper
-                elevation={3}
-                className={classes.messages}
-                onScroll={scrollHandler}
-                ref={myRef}
+            <UsersComponent
+                stylesMembers={classes.members}
+                stylesTitle={classes.titles}
+                stylesUser={classes.user}
+                users={users}
+            />
+            <MessagesComponent
+                stylesMessages={classes.messages}
+                stylesTitle={classes.titles}
+                messages={messages}
+                deleteHandler={deleteMessageHandler}
+                refMessages={myRef}
+                scrollHandler={scrollHandler}
+                user={user}
+                stylesDefault={classes.message}
+                stylesPersonal={classes.personalMessage}
+                stylesPrivate={classes.privateMessage}
             >
-                <Typography
-                    variant='h6'
-                    className={classes.titles}
-                >
-                    Chat
-                </Typography>
-                {!!messages.length ? messages.map(message => {
-                    if (message?.recipient === user['_id']) {
-                        return <Message
-                            key={message['_id']}
-                            styles={classes.privateMessage}
-                            user={message.user}
-                            message={message.message}
-                            role={user.role}
-                            datetime={message.date}
-                            deleteMessageHandler={() => deleteMessageHandler(message['_id'])}
-                        />
-                    } else if (!message?.recipient) {
-                        return <Message
-                            key={message['_id']}
-                            styles={
-                                message.user['_id'] === user['_id']
-                                    ? classes.personalMessage
-                                    : classes.message
-                            }
-                            user={message.user}
-                            message={message.message}
-                            role={user.role}
-                            datetime={message.date}
-                            deleteMessageHandler={() => deleteMessageHandler(message['_id'])}
-                        />
-                    }
-                    return null;
-                }) : null}
-                <form className={classes.form}
-                      onSubmit={formSubmit}
-                >
-                    {downScroll ? <div
-                        className={classes.downIcon}
-                        onClick={() => scrollToBottom()}
-                    >
-                        <ArrowDownwardIcon color='primary'/>
-                    </div> : null}
-                    <FormElement
-                        label="Write a message..."
-                        name="message"
-                        value={state.message}
-                        onChange={inputChangeHandler}
-                        autoComplete="message"
-                        autoFocus
-                        required={true}
-                        styles={classes.input}
-                        icon={!!state.message ? <SendIcon color='primary'/> : null}
-                        select={
-                            <FormSelect
-                                onChange={inputChangeHandler}
-                                user={user}
-                                name='recipient'
-                                options={users}
-                                label='Users'
-                                value={state.recipient}
-                            />
-                        }
-                    />
-                </form>
-            </Paper>
+                <MessageForm
+                    stylesForm={classes.form}
+                    stylesScroll={classes.downIcon}
+                    stylesInput={classes.input}
+                    formSubmit={formSubmit}
+                    scrollHandler={scrollToBottom}
+                    inputHandler={inputChangeHandler}
+                    scrollState={downScroll}
+                    recipientValue={state.recipient}
+                    messageValue={state.message}
+                    user={user}
+                    users={users}
+                />
+            </MessagesComponent>
         </Box>
     );
 };
