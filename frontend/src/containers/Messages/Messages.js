@@ -63,6 +63,7 @@ const useStyles = makeStyles()(theme => ({
         margin: "8px 10px",
         color: '#fff',
         backgroundColor: '#59596d',
+        position: 'relative',
     },
     personalMessage: {
         display: 'flex',
@@ -71,7 +72,8 @@ const useStyles = makeStyles()(theme => ({
         borderRadius: '8px',
         margin: "8px 10px",
         color: '#fff',
-        backgroundColor: '#6b6bef'
+        backgroundColor: '#6b6bef',
+        position: 'relative',
     },
     privateMessage: {
         display: 'flex',
@@ -80,7 +82,8 @@ const useStyles = makeStyles()(theme => ({
         borderRadius: '8px',
         margin: "8px 10px",
         color: '#fff',
-        backgroundColor: '#f83838'
+        backgroundColor: '#f83838',
+        position: 'relative',
     },
     titles: {
         padding: "15px 0",
@@ -289,14 +292,14 @@ const Messages = () => {
             <MessagesComponent
                 stylesMessages={classes.messages}
                 stylesTitle={classes.titles}
-                messages={messages}
-                deleteHandler={deleteMessageHandler}
-                refMessages={myRef}
-                scrollHandler={scrollHandler}
-                user={user}
                 stylesDefault={classes.message}
                 stylesPersonal={classes.personalMessage}
                 stylesPrivate={classes.privateMessage}
+                deleteHandler={deleteMessageHandler}
+                scrollHandler={scrollHandler}
+                refMessages={myRef}
+                messages={messages}
+                user={user}
             >
                 <MessageForm
                     stylesForm={classes.form}

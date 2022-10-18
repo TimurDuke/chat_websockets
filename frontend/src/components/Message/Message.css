@@ -1,0 +1,24 @@
+.message-block {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.moderator-span {
+    color: #ff2424;
+    opacity: 0.9;
+    margin-left: 10px;
+}
+
+.message-inner {
+    word-wrap: break-word;
+    max-width: 65%;
+}
+
+.message-date {
+    color: #ccc;
+    font-size: 14px;
+    position: absolute;
+    right: 3%;
+    bottom: 10px;
+}
