@@ -29,11 +29,12 @@ const FormElement = ({name, value, onChange, label, error, type, required, style
                                     justifyContent: 'flex-end'
                                 }}
                             >
+                                {select}
                                 <Button
                                     type='submit'
                                     endIcon={icon}
+                                    size='large'
                                 />
-                                {select}
                             </InputAdornment>
                         )
                     } : null

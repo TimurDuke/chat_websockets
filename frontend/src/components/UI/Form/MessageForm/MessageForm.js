@@ -3,6 +3,9 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import PropTypes, {object} from "prop-types";
 import SendIcon from "@mui/icons-material/Send";
 import {makeStyles} from "tss-react/mui";
+import MoodIcon from '@mui/icons-material/Mood';
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
 import FormElement from "../FormElement/FormElement";
 import FormSelect from "../FormSelect/FormSelect";
 import {sendMessage, sendPrivateMessage} from "../../../../store/actions/chatActions";
@@ -26,25 +29,21 @@ const useStyles = makeStyles()(theme => ({
             backgroundImage: `url(${messagesBg})`,
             backgroundSize: 'contain',
             paddingRight: '0',
+            borderRadius: '0',
             '& fieldset': {
                 borderTopColor: '#fff',
-                borderBottomColor: '#ccc',
+                borderBottomColor: '#fff',
             },
             '&:hover fieldset': {
-                borderTopColor: '#fff',
-                borderBottomColor: '#ccc',
+                borderColor: '#fff'
             },
         },
         '& label.Mui-focused': {
             color: '#000',
             fontWeight: '700',
         },
-        '& .MuiInput-underline:after': {
-            borderBottomColor: 'yellow',
-        },
-        marginBottom: '-2px',
         width: '100%',
-        color: '#000'
+        color: '#000',
     },
     downIcon: {
         display: 'flex',
@@ -67,6 +66,37 @@ const useStyles = makeStyles()(theme => ({
             backgroundColor: '#bcbaba',
         },
         transition: '.3s',
+    },
+    emojiBlock: {
+        width: "5%",
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundImage: `url(${messagesBg})`,
+        backgroundSize: 'contain',
+        borderRadius: '10px',
+        "@media (max-width: 1150px)": {
+            width: "10%"
+        },
+        "@media (max-width: 730px)": {
+            width: "15%"
+        }
+    },
+    emojiIcon: {
+        width: '70%',
+        height: '70%',
+        color: '#59596d',
+        cursor: 'pointer',
+        "&:hover": {
+            color: "#3b3b48",
+        }
+    },
+    emojies: {
+        position: 'absolute',
+        bottom: '50px',
+        right: '0',
+        padding: '10px 10px 20px 10px',
     }
 }));
 
@@ -77,6 +107,8 @@ const MessageForm = ({scrollState, ws, scrollHandler, users, user}) => {
         message: '',
         recipient: ''
     });
+
+    const [showEmojies, setShowEmojies] = useState(false);
 
     const inputChangeHandler = e => {
         const {name, value} = e.target;
@@ -112,6 +144,13 @@ const MessageForm = ({scrollState, ws, scrollHandler, users, user}) => {
         }
     };
 
+    const emojiHandler = e => {
+        setState(prev => ({
+            ...prev,
+            message: state.message + e.native
+        }));
+    };
+
     return (
         <form className={classes.form}
               onSubmit={formSubmit}
@@ -143,6 +182,24 @@ const MessageForm = ({scrollState, ws, scrollHandler, users, user}) => {
                     />
                 }
             />
+            <div
+                className={classes.emojies}
+                onMouseOver={() => setShowEmojies(true)}
+                onMouseLeave={() => setShowEmojies(false)}
+                style={{display: showEmojies ? 'block' : 'none'}}
+            >
+                <Picker
+                    data={data}
+                    onEmojiSelect={emojiHandler}
+                />
+            </div>
+            <div
+                className={classes.emojiBlock}
+                onMouseOver={() => setShowEmojies(true)}
+                onMouseLeave={() => setShowEmojies(false)}
+            >
+                <MoodIcon className={classes.emojiIcon}/>
+            </div>
         </form>
     );
 };
