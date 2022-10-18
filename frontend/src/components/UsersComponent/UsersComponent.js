@@ -1,11 +1,36 @@
 import React from 'react';
 import {Paper, Typography} from "@mui/material";
-import User from "../User/User";
 import PropTypes, {object} from "prop-types";
+import {makeStyles} from "tss-react/mui";
+import User from "../User/User";
+import usersBg from "../../assests/images/users-bg.jpg";
 
-const UsersComponent = ({stylesMembers, stylesTitle, users, stylesUser}) => {
+const useStyles = makeStyles()(() => ({
+    members: {
+        width: '20%',
+        backgroundImage: `url(${usersBg})`,
+        backgroundSize: 'contain',
+        borderRadius: '15px'
+    },
+    user: {
+        padding: '8px 15px',
+        borderBottom: '1px solid #fff',
+        cursor: 'pointer',
+        color: '#fff',
+        transition: '.3s',
+        "&:hover": {
+            backgroundColor: '#e8e5e5',
+            color: "#000",
+            transition: '.3s'
+        }
+    },
+}));
+
+const UsersComponent = ({stylesTitle, users}) => {
+    const { classes } = useStyles();
+
     return (
-        <Paper elevation={3} className={stylesMembers}>
+        <Paper elevation={3} className={classes.members}>
             <Typography
                 variant='h6'
                 className={stylesTitle}
@@ -15,7 +40,7 @@ const UsersComponent = ({stylesMembers, stylesTitle, users, stylesUser}) => {
             {!!users.length ? users.map(user => (
                 <User
                     key={user['_id']}
-                    styles={stylesUser}
+                    styles={classes.user}
                     username={user.username}
                 />
             )) : null}
@@ -25,9 +50,7 @@ const UsersComponent = ({stylesMembers, stylesTitle, users, stylesUser}) => {
 
 UsersComponent.propTypes = {
     users: PropTypes.arrayOf(object).isRequired,
-    stylesMembers: PropTypes.string.isRequired,
     stylesTitle: PropTypes.string.isRequired,
-    stylesUser: PropTypes.string.isRequired,
 };
 
 export default UsersComponent;
