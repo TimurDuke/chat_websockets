@@ -10,7 +10,7 @@ const sendAll = (msg) => {
     });
 };
 
-const sendUserList = async () => {
+const sendUserList = async (ws) => {
     try {
         const activeUsers = await User.find({_id: {$in: Object.keys(activeConnections)}}, '_id username');
         sendAll({type: 'USERS', activeUsers});
@@ -20,7 +20,7 @@ const sendUserList = async () => {
     }
 };
 
-const prevHandler = async () => {
+const prevHandler = async (ws) => {
     try {
         await Message.find({recipient: {$exists: false}}).exec(async (err, messages) => {
             const prevMsg = await Message.find({recipient: {$exists: false}})
@@ -38,6 +38,11 @@ const prevHandler = async () => {
 
 const broadcastHandler = async (ws, user, decodedMessage) => {
     try {
+        if (!decodedMessage.message || decodedMessage.message.trim().length === 0) {
+            ws.send(JSON.stringify({type: 'ERROR', error: 'Message cannot be empty'}));
+            return;
+        }
+
         const data = {
             user: user._id,
             message: decodedMessage.message,
@@ -55,6 +60,11 @@ const broadcastHandler = async (ws, user, decodedMessage) => {
 
 const privateHandler = async (ws, user, decodedMessage) => {
     try {
+        if (!decodedMessage.message || decodedMessage.message.trim().length === 0) {
+            ws.send(JSON.stringify({type: 'ERROR', error: 'Message cannot be empty'}));
+            return;
+        }
+
         const recipient = decodedMessage.recipient;
         const conn = activeConnections[recipient];
         if (conn) {
@@ -87,7 +97,7 @@ const deleteHandler = async (ws, user, decodedMessage) => {
     try {
         if (user.role === 'moderator') {
             await Message.deleteOne({_id: decodedMessage.id});
-            await prevHandler();
+            await prevHandler(ws);
         } else {
             ws.send(JSON.stringify({type: 'ERROR', error: 'Forbidden'}));
         }
@@ -108,18 +118,13 @@ const chat = async (ws, req) => {
     activeConnections[id] = ws;
     console.log('Client connected id=', id);
 
-    await sendUserList();
+    await sendUserList(ws);
 
-    await prevHandler();
+    await prevHandler(ws);
 
     ws.on('message', async msg => {
         try {
             const decodedMessage = JSON.parse(msg);
-
-            if (!decodedMessage.message || decodedMessage.message.trim().length === 0) {
-                ws.send(JSON.stringify({type: 'ERROR', error: 'Message cannot be empty'}));
-                return;
-            }
 
             switch (decodedMessage.type) {
                 case 'BROADCAST':
@@ -147,7 +152,7 @@ const chat = async (ws, req) => {
     ws.on('close', async () => {
         console.log('Client disconnected! id=', id);
         delete activeConnections[id];
-        await sendUserList();
+        await sendUserList(ws);
     });
 
     console.log('Connections: ' + Object.keys(activeConnections).length);
