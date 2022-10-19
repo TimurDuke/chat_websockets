@@ -21,3 +21,6 @@ export const sendPrivateMessage = (ws, message) => {
 
 export const ACCEPT_PRIVATE_MESSAGE = 'ACCEPT_PRIVATE_MESSAGE';
 export const acceptPrivateMessage = message => ({type: ACCEPT_PRIVATE_MESSAGE, payload: message});
+
+export const ERROR_MESSAGE = 'ERROR_MESSAGE';
+export const errorMessage = error => ({type: ERROR_MESSAGE, payload: error});

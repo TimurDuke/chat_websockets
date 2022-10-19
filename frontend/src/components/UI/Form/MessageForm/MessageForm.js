@@ -122,7 +122,7 @@ const MessageForm = ({scrollState, ws, scrollHandler, users, user}) => {
     const formSubmit = e => {
         e.preventDefault();
         if (!!state.message && !state.recipient) {
-            sendMessage(ws, {type: "BROADCAST", message: state.message});
+            sendMessage(ws, {type: "BROADCAST", message: state.message.trim()});
             setState(prev => ({
                 ...prev,
                 message: '',
@@ -170,7 +170,7 @@ const MessageForm = ({scrollState, ws, scrollHandler, users, user}) => {
                 autoFocus
                 required={true}
                 styles={classes.input}
-                icon={!!state.message ? <SendIcon color='primary'/> : null}
+                icon={!!state.message && !!state.message.trim().length ? <SendIcon color='primary'/> : null}
                 select={
                     <FormSelect
                         onChange={inputChangeHandler}

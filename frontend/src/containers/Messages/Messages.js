@@ -6,12 +6,14 @@ import {makeStyles} from "tss-react/mui";
 import {
     acceptMessage,
     acceptPrivateMessage,
+    errorMessage,
     getOnlineUsers,
     getPrevMessages,
 } from "../../store/actions/chatActions";
 import UsersComponent from "../../components/UsersComponent/UsersComponent";
 import MessagesComponent from "../../components/MessagesComponent/MessagesComponent";
 import MessageForm from "../../components/UI/Form/MessageForm/MessageForm";
+import {UseToastError} from "../../hooks";
 
 const useStyles = makeStyles()(theme => ({
     box: {
@@ -79,6 +81,9 @@ const Messages = () => {
                         return dispatch(acceptMessage(decodedMessage.message));
                     case "PRIVATE":
                         return dispatch(acceptPrivateMessage(decodedMessage.message));
+                    case "ERROR":
+                        UseToastError(decodedMessage.error);
+                        return dispatch(errorMessage(decodedMessage.error));
 
                     default:
                         console.log('Unknown message type: ', decodedMessage.type);

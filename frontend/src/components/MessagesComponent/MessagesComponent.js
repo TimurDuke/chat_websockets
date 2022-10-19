@@ -69,7 +69,7 @@ const MessagesComponent = ({children, scrollHandler, refMessages, ws, stylesTitl
                 Chat
             </Typography>
             {!!messages.length ? messages.map(message => {
-                if (message?.recipient === user['_id']) {
+                if (message?.recipient?._id === user['_id'] || (message?.recipient && message?.user?._id === user['_id'])) {
                     return <Message
                         key={message['_id']}
                         styles={classes.privateMessage}
