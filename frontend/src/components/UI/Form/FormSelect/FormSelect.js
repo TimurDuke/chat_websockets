@@ -5,7 +5,7 @@ import MenuItem from "@mui/material/MenuItem";
 
 const FormSelect = ({label, name, value, onChange, options, error, required, user}) => {
     return (
-        <Grid item sx={{width: '50%'}}>
+        <Grid item sx={{width: '50%', marginBottom: '-3px'}}>
             <FormControl fullWidth error={Boolean(error)}>
                 <InputLabel id={`${name}-label`}>{label}</InputLabel>
                 <Select

@@ -19,6 +19,7 @@ const useStyles = makeStyles()(theme => ({
         justifyContent: "flex-end",
         width: '100%',
         height: theme.spacing(83),
+        padding: '0 10px',
         position: 'sticky',
         bottom: '0',
         left: '0',
@@ -29,13 +30,17 @@ const useStyles = makeStyles()(theme => ({
             backgroundImage: `url(${messagesBg})`,
             backgroundSize: 'contain',
             paddingRight: '0',
-            borderRadius: '0',
             '& fieldset': {
                 borderTopColor: '#fff',
                 borderBottomColor: '#fff',
             },
             '&:hover fieldset': {
-                borderColor: '#fff'
+                borderTopColor: '#fff',
+                borderBottomColor: '#fff',
+            },
+            '&.Mui-focused fieldset': {
+                borderTopColor: '#fff',
+                borderBottomColor: '#fff',
             },
         },
         '& label.Mui-focused': {
@@ -169,6 +174,7 @@ const MessageForm = ({scrollState, ws, scrollHandler, users, user}) => {
                 autoComplete="message"
                 autoFocus
                 required={true}
+                focus={true}
                 styles={classes.input}
                 icon={!!state.message && !!state.message.trim().length ? <SendIcon color='primary'/> : null}
                 select={

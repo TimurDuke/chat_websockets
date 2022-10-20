@@ -83,6 +83,7 @@ const Login = () => {
                     spacing={2}
                 >
                     <FormElement
+                        focus={true}
                         required={true}
                         label="Username"
                         name="username"

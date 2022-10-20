@@ -42,7 +42,9 @@ const Messages = () => {
     const {classes} = useStyles();
 
     const ws = useRef(null);
-    const myRef = useRef(null);
+    const messagesRef = useRef(null);
+    const refresh = useRef(null);
+
     const dispatch = useDispatch();
 
     const [downScroll, setDownScroll] = useState(false);
@@ -52,9 +54,39 @@ const Messages = () => {
     const users = useSelector(state => state.chat.users);
     const messages = useSelector(state => state.chat.messages);
 
+
+    const connectToSocket = () => {
+        ws.current = new WebSocket("ws://localhost:8000/chat?token=" + user.token);
+
+        ws.current.onopen = () => {
+            console.log('Connection established');
+            clearInterval(refresh.current);
+        };
+
+        ws.current.onmessage = e => {
+            const decodedMessage = JSON.parse(e.data);
+            switch (decodedMessage.type) {
+                case "USERS":
+                    return dispatch(getOnlineUsers(decodedMessage['activeUsers']));
+                case "PREV_MESSAGES":
+                    return dispatch(getPrevMessages(decodedMessage.messages));
+                case "BROADCAST":
+                    return dispatch(acceptMessage(decodedMessage.message));
+                case "PRIVATE":
+                    return dispatch(acceptPrivateMessage(decodedMessage.message));
+                case "ERROR":
+                    UseToastError(decodedMessage.error);
+                    return dispatch(errorMessage(decodedMessage.error));
+
+                default:
+                    console.log('Unknown message type: ', decodedMessage.type);
+            }
+        };
+    };
+
     const scrollToBottom = () => {
-        myRef.current.scrollTo({
-            top: myRef.current.offsetTop + '1200',
+        messagesRef.current.scrollTo({
+            top: messagesRef.current.offsetTop + '1200',
             left: '0',
             behavior: "smooth",
         });
@@ -62,37 +94,11 @@ const Messages = () => {
 
     useEffect(() => {
         if (user) {
-            ws.current = new WebSocket("ws://localhost:8000/chat?token=" + user.token);
-            let refresh;
-
-            ws.current.onopen = () => {
-                console.log('Connection established');
-                clearInterval(refresh);
-            };
-
-            ws.current.onmessage = e => {
-                const decodedMessage = JSON.parse(e.data);
-                switch (decodedMessage.type) {
-                    case "USERS":
-                        return dispatch(getOnlineUsers(decodedMessage['activeUsers']));
-                    case "PREV_MESSAGES":
-                        return dispatch(getPrevMessages(decodedMessage.messages));
-                    case "BROADCAST":
-                        return dispatch(acceptMessage(decodedMessage.message));
-                    case "PRIVATE":
-                        return dispatch(acceptPrivateMessage(decodedMessage.message));
-                    case "ERROR":
-                        UseToastError(decodedMessage.error);
-                        return dispatch(errorMessage(decodedMessage.error));
-
-                    default:
-                        console.log('Unknown message type: ', decodedMessage.type);
-                }
-            };
+            connectToSocket();
 
             ws.current.onclose = () => {
-                refresh = setInterval(() => {
-                    ws.current = new WebSocket("ws://localhost:8000/chat?token=" + user.token);
+                refresh.current = setInterval(() => {
+                    connectToSocket();
                     console.log('Connect failure');
                 }, 5000);
                 console.log("ws connection closed");
@@ -102,6 +108,7 @@ const Messages = () => {
                 ws.current.close();
             };
         }
+        //eslint-disable-next-line
     }, [user, dispatch]);
 
     useEffect(() => {
@@ -111,7 +118,7 @@ const Messages = () => {
     }, [user, messages]);
 
     const scrollHandler = e => {
-        const scroll = (myRef.current.scrollHeight - e.currentTarget.offsetHeight) - e.currentTarget.scrollTop;
+        const scroll = (messagesRef.current.scrollHeight - e.currentTarget.offsetHeight) - e.currentTarget.scrollTop;
         if (scroll > 300) {
             setDownScroll(true);
         } else {
@@ -132,7 +139,7 @@ const Messages = () => {
             <MessagesComponent
                 stylesTitle={classes.titles}
                 scrollHandler={scrollHandler}
-                refMessages={myRef}
+                refMessages={messagesRef}
                 ws={ws}
                 messages={messages}
                 user={user}

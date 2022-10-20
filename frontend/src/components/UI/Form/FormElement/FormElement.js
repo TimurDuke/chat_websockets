@@ -2,10 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Button, Grid, InputAdornment, TextField} from "@mui/material";
 
-const FormElement = ({name, value, onChange, label, error, type, required, styles, icon, select}) => {
+const FormElement = ({name, value, onChange, label, error, type, required, styles, icon, select, focus}) => {
     return (
         <Grid item xs={12} sx={{width: '100%'}}>
             <TextField
+                autoFocus={focus}
                 className={styles}
                 type={type}
                 required={required}
@@ -52,6 +53,7 @@ FormElement.propTypes = {
     error: PropTypes.string,
     type: PropTypes.string,
     required: PropTypes.bool,
+    focus: PropTypes.bool,
     styles: PropTypes.string,
     icon: PropTypes.object,
     select: PropTypes.object,
